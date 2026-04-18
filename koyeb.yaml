@@ -1,0 +1,15 @@
+name: jz-pairing-site
+services:
+  - name: web
+    git:
+      branch: main
+    build:
+      command: npm install
+    run:
+      command: node server.js
+    ports:
+      - port: 3000
+        protocol: http
+    env:
+      - key: SESSION_ID
+        value: ""

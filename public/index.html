@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JZ Developer V2 — Connect Bot</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0d0d0d;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:440px}
+.logo{text-align:center;margin-bottom:24px}
+.logo h1{font-size:24px;font-weight:800;background:linear-gradient(135deg,#25d366,#00a884);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo p{color:#555;font-size:13px;margin-top:4px}
+.card{background:#111;border:1px solid #1f1f1f;border-radius:16px;padding:22px}
+.step{display:none}.step.active{display:block}
+.badge{display:inline-block;background:#0d2618;color:#25d366;border:1px solid #1a4a2e;font-size:11px;border-radius:20px;padding:3px 12px;margin-bottom:14px;font-weight:600}
+h2{font-size:15px;color:#fff;margin-bottom:5px;font-weight:600}
+.sub{color:#777;font-size:13px;line-height:1.6;margin-bottom:16px}
+.inp{display:flex;gap:8px;margin-bottom:12px}
+input{flex:1;background:#1a1a1a;border:1px solid #252525;border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s}
+input:focus{border-color:#25d366}
+input::placeholder{color:#333}
+.btn{background:linear-gradient(135deg,#25d366,#00a884);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btnfull{width:100%;padding:13px;font-size:15px}
+.tips{background:#161616;border-radius:10px;padding:13px;margin-bottom:12px}
+.tips li{color:#666;font-size:12px;margin-bottom:5px;list-style:none}
+.tips li::before{content:'▸ ';color:#25d366}
+.codebox{background:#0d2618;border:2px dashed #25d366;border-radius:14px;padding:20px;text-align:center;margin:14px 0}
+.bigcode{font-size:38px;font-weight:900;letter-spacing:10px;color:#25d366;font-family:'Courier New',monospace;text-shadow:0 0 20px rgba(37,211,102,.3)}
+.codelbl{font-size:11px;color:#3a7d52;margin-top:8px}
+.timer{font-size:12px;color:#e67e22;margin-top:6px;font-weight:600}
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid #252525;border-top-color:#25d366;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stat{color:#666;font-size:13px;text-align:center;margin:10px 0}
+.done{background:#0a1f12;border:1px solid #1a4a2e;border-radius:12px;padding:18px;text-align:center}
+.done .ico{font-size:52px;margin-bottom:10px}
+.done h3{color:#25d366;font-size:20px;margin-bottom:6px}
+.done p{color:#777;font-size:13px;margin-bottom:4px}
+.errbox{background:#1a0a0a;border:1px solid #5a1a1a;border-radius:10px;padding:12px;color:#e74c3c;font-size:13px;text-align:center;margin-top:10px}
+.offbox{background:#1a1500;border:1px solid #4a3800;border-radius:10px;padding:14px;color:#f39c12;font-size:13px;text-align:center}
+.footer{text-align:center;margin-top:18px;color:#2a2a2a;font-size:11px}
+.footer span{color:#25d366}
+.numshow{color:#25d366;font-weight:600;font-size:13px;margin-bottom:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <h1>⚡ JZ Developer V2</h1>
+    <p>Connect your WhatsApp — No downloads needed</p>
+  </div>
+
+  <div class="card">
+
+    <!-- Offline notice (hidden by default) -->
+    <div id="offlineNotice" style="display:none" class="offbox">
+      ⚠️ Bot is currently starting up. Please wait 30 seconds and refresh.
+    </div>
+
+    <!-- Step 1: Enter number -->
+    <div class="step active" id="s1">
+      <div class="badge">Step 1 of 2</div>
+      <h2>📱 Enter Your WhatsApp Number</h2>
+      <p class="sub">You'll receive a pairing code. No app download or session file needed.</p>
+      <div class="inp">
+        <input type="tel" id="numInput" placeholder="923001234567" maxlength="15"/>
+        <button class="btn" id="getBtn" onclick="getCode()">Get Code</button>
+      </div>
+      <ul class="tips">
+        <li>Include country code, no + or spaces</li>
+        <li>Pakistan: 923XXXXXXXXX | India: 91XXXXXXXXXX</li>
+        <li>Number must be on WhatsApp</li>
+        <li>You'll enter this code in WhatsApp directly</li>
+      </ul>
+      <div id="e1"></div>
+    </div>
+
+    <!-- Step 2: Show code -->
+    <div class="step" id="s2">
+      <div class="badge">Step 2 of 2</div>
+      <h2>🔑 Enter This Code in WhatsApp</h2>
+      <p class="sub">Open WhatsApp on your phone and enter the code below in <b>Linked Devices</b>.</p>
+      <div id="numDisplay" class="numshow"></div>
+      <div class="codebox">
+        <div class="bigcode" id="codeDisplay">----</div>
+        <div class="codelbl">Your Pairing Code</div>
+        <div class="timer" id="countdown"></div>
+      </div>
+      <ul class="tips">
+        <li>Open WhatsApp → Tap ⋮ (3 dots, top right)</li>
+        <li>Tap <b>Linked Devices</b></li>
+        <li>Tap <b>Link with phone number</b></li>
+        <li>Enter the code exactly as shown above</li>
+        <li>Bot will be active on your WhatsApp instantly!</li>
+      </ul>
+      <div class="stat" id="s2stat"><span class="spin"></span> Waiting for you to enter the code in WhatsApp...</div>
+      <button class="btn btnfull" onclick="goBack()" style="background:#1a1a1a;margin-top:10px">← Try a Different Number</button>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div class="step" id="s3">
+      <div class="done">
+        <div class="ico">🎉</div>
+        <h3>Bot Connected!</h3>
+        <p>JZ Developer V2 is now active on your WhatsApp.</p>
+        <p style="margin-top:8px;color:#25d366">Try sending <b>.menu</b> to yourself!</p>
+      </div>
+      <button class="btn btnfull" onclick="goBack()" style="margin-top:14px">Connect Another Number</button>
+    </div>
+
+  </div>
+  <div class="footer">Powered by <span>JZ Developer V2</span> · by Zohaib Abbas</div>
+</div>
+
+<script>
+let countdownTimer = null;
+let pollTimer = null;
+let connectedNum = null;
+
+async function checkOnline() {
+  try {
+    const r = await fetch('/health');
+    const d = await r.json();
+    if (!d.connected) {
+      document.getElementById('offlineNotice').style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+function show(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<div class="errbox">⚠️ ${msg}</div>`;
+}
+
+function clearErr(id) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = '';
+}
+
+function startCountdown(seconds) {
+  let s = seconds;
+  const el = document.getElementById('countdown');
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    s--;
+    if (s <= 0) {
+      clearInterval(countdownTimer);
+      el.textContent = '⚠️ Code may have expired — try again if needed';
+      el.style.color = '#e74c3c';
+    } else {
+      el.textContent = `⏱️ Expires in ${s} seconds`;
+    }
+  }, 1000);
+}
+
+function startConnectionPoll(number) {
+  let tries = 0;
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    tries++;
+    if (tries > 90) {
+      clearInterval(pollTimer);
+      document.getElementById('s2stat').innerHTML =
+        '<div class="errbox">⏰ Timed out waiting. If you entered the code, the bot should still be connected.<br><br>' +
+        'Try sending <b>.menu</b> to yourself on WhatsApp to verify!</div>';
+    }
+  }, 2000);
+}
+
+async function getCode() {
+  clearErr('e1');
+  const numRaw = document.getElementById('numInput').value.trim().replace(/[\s+\-]/g, '');
+  if (!numRaw || !/^\d{10,15}$/.test(numRaw)) {
+    return showErr('e1', 'Enter a valid number with country code (e.g. 923001234567)');
+  }
+
+  const btn = document.getElementById('getBtn');
+  btn.disabled = true;
+  btn.textContent = 'Getting...';
+
+  try {
+    const r = await fetch('/pair', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: numRaw })
+    });
+    const d = await r.json();
+
+    if (!r.ok) {
+      btn.disabled = false;
+      btn.textContent = 'Get Code';
+      return showErr('e1', d.error || 'Failed to get code. Try again.');
+    }
+
+    // Show code
+    connectedNum = numRaw;
+    document.getElementById('numDisplay').textContent = `Number: +${numRaw}`;
+    document.getElementById('codeDisplay').textContent = d.code;
+    document.getElementById('s2stat').innerHTML =
+      '<span class="spin"></span> Waiting for you to enter the code in WhatsApp...';
+    document.getElementById('countdown').textContent = '';
+    document.getElementById('countdown').style.color = '#e67e22';
+
+    show(2);
+    startCountdown(58);
+    startConnectionPoll(numRaw);
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Get Code';
+    showErr('e1', 'Network error. Please try again.');
+  }
+}
+
+function goBack() {
+  if (pollTimer) clearInterval(pollTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  const btn = document.getElementById('getBtn');
+  btn.disabled = false;
+  btn.textContent = 'Get Code';
+  clearErr('e1');
+  show(1);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkOnline();
+  document.getElementById('numInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') getCode();
+  });
+});
+</script>
+</body>
+</html>
